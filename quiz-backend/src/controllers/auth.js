@@ -1,20 +1,20 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../../config');
-let users = [];
+const User = require('../models/user');
+
 
 const signup = async (req, res) => {
-    const { email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
     console.log('Iniciando proceso de registro de usuario...');
-    if (users.find(user => user.email === email)) {
+    const userInstance = await User.User.findOne({ where: { email } });
+    console.log('Usuario encontrado:', userInstance);
+    if (userInstance) {
         return res.status(400).send({ 'error': 'User already exists' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = {
-        email,
-        password: hashedPassword
-    };
-    users.push(newUser);
+
+    const newUser = await User.User.create({ firstName, lastName, email, password: hashedPassword });
     res.status(201).send({ 'message': 'User created successfully' });
 };
 
