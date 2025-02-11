@@ -4,7 +4,7 @@ const router = express.Router();
 const userController = require("../controllers/user");
 const authMiddleware = require('../middlewares/authMiddleware');
 
-router.route('/greetings').get(userController.greetings);
-router.route('/getName').post(userController.getName);
+router.route('/transfer').post(authMiddleware, userController.transferCoins);
+router.route('/users').get(authMiddleware, userController.getAllUsers);
 
 module.exports = router;

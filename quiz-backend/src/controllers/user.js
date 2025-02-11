@@ -1,18 +1,29 @@
-const { User } = require('../models/user');
-const greetings = async (req, res) => {
-    res.send('Hello from user route');
+const e = require('express');
+const userService = require('../services/userService');
+
+const getAllUsers = async (req, res) => {
+    const { email } = req.user;
+    const result = await userService.getAllUsers(email);
+    res.status(result.code).send(result);
 };
 
-const getName = async (req, res) => {
-    const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-        return res.status(404).send('User not found');
+const transferCoins = async (req, res) => {
+    const { email } = req.user;
+    const { amount, toEmail } = req.body;
+    if (!amount || !toEmail) {
+        res.status(400).send({ code: 400, message: 'Missing required fields' });
     }
-    res.send(user.firstName);
+    if (amount <= 0) {
+        res.status(400).send({ code: 400, message: 'Amount must be greater than 0' });
+    }
+    if (email === toEmail) {
+        res.status(400).send({ code: 400, message: 'Cannot transfer coins to yourself' });
+    }
+    const result = await userService.transferCoinsTo(email, amount, toEmail);
+    res.status(result.code).send(result);
 }
 
 module.exports = {
-    greetings,
-    getName
+    getAllUsers,
+    transferCoins
 };
