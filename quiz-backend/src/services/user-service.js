@@ -3,62 +3,57 @@ const config = require('../config');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
-const { Sequelize, Transaction } = require('sequelize');
+const { Transaction } = require('sequelize');
 const { sequelize } = require('../models/db');
-const { throws } = require('node:assert');
+const { UserAlreadyExistsError, UserNotFoundError, TranferCoinsError, UserWithInsufficientCoinsError, UserInvalidCredentialsError } = require('../errors/user-errors');
 
 const createUser = async (user) => {
     const { firstName, lastName, email, password } = user;
-    const userInstance = await User.findOne({ where: { email } });
+    const userInstance = await User.findOne({
+        attributes: ['firstName', 'lastName', 'email', 'coins'],
+        where: { email }
+    });
     if (userInstance) {
-        return {
-            code: 400,
-            message: 'User already exists'
-        };
+        throw new UserAlreadyExistsError();
     }
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({ firstName, lastName, email, password: hashedPassword });
     const token = jwt.sign({ email }, config.secretKey, { expiresIn: '1h' });
     return {
-        code: 201,
         message: 'User created successfully',
         user: {
             firstName: newUser.firstName,
             lastName: newUser.lastName,
             email: newUser.email,
             coins: newUser.coins,
-            token: token
-        }
+        },
+        token
     };
 };
 
 const loginUser = async (userCredentials) => {
     const { email, password } = userCredentials;
-    const userInstance = await User.findOne({ where: { email } });
+    const userInstance = await User.findOne({
+        attributes: ['firstName', 'lastName', 'email', 'coins', 'password'],
+        where: { email }
+    });
     if (!userInstance) {
-        return {
-            code: 400,
-            message: 'User not found'
-        };
+        throw new UserNotFoundError();
     }
     if (!await bcrypt.compare(password, userInstance.password)) {
-        return {
-            code: 400,
-            message: 'Invalid credentials'
-        };
+        throw new UserInvalidCredentialsError();
     }
     const token = jwt.sign({ email }, config.secretKey, { expiresIn: '1h' });
     return {
-        code: 200,
         message: 'Login successful',
         user: {
             firstName: userInstance.firstName,
             lastName: userInstance.lastName,
             email: userInstance.email,
             coins: userInstance.coins,
-            token: token
-        }
+        },
+        token
     };
 };
 
@@ -68,13 +63,9 @@ const getUserByEmail = async (email) => {
         where: { email }
     });
     if (!userInstance) {
-        return {
-            code: 400,
-            message: 'User not found'
-        };
+        throw new UserNotFoundError();
     }
     return {
-        code: 200,
         message: 'Login successful',
         user: userInstance
     };
@@ -90,15 +81,11 @@ const getAllUsers = async (email) => {
         }
     });
     if (!usersInstance) {
-        return {
-            code: 400,
-            message: 'Users not found'
-        };
+        throw new UserNotFoundError();
     }
     return {
-        code: 200,
         message: 'Successful',
-        usersInstance
+        user: usersInstance
     };
 };
 
@@ -114,7 +101,7 @@ const transferCoinsTo = async (from, amount, to) => {
                 { transaction }
             );
             if (!fromUser) {
-                throw new Error('Origin user not found');
+                throw new UserNotFoundError();
             }
             const toUser = await User.findOne(
                 {
@@ -124,25 +111,22 @@ const transferCoinsTo = async (from, amount, to) => {
                 { transaction }
             );
             if (!toUser) {
-                throw new Error('Destination user not found');
+                throw new UserNotFoundError();
             }
             if (fromUser.coins < amount) {
-                throw new Error('Insufficient coins');
+                throw new UserWithInsufficientCoinsError();
             }
             await fromUser.update(
-                { coins: parseInt(fromUser.coins) - parseInt(amount) },
+                { coins: fromUser.coins - amount },
                 { transaction }
             );
             await toUser.update(
-                { coins: parseInt(toUser.coins) + parseInt(amount) },
+                { coins: toUser.coins + amount },
                 { transaction }
             );
         });
     } catch (err) {
-        return {
-            code: 400,
-            message: err.message || 'Error transferring coins'
-        };
+        throw new TranferCoinsError(`Transfer failed: ${err.message}`);
     }
 
     const user = await User.findOne({
@@ -150,7 +134,6 @@ const transferCoinsTo = async (from, amount, to) => {
         where: { email: from }
     });
     return {
-        code: 200,
         message: 'Coins transferred successfully',
         user
     };

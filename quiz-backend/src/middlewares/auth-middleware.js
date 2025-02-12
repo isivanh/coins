@@ -4,7 +4,9 @@ const config = require('../config');
 const authMiddleware = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
-        return res.status(401).send({ message: 'Acceso denegado: no se proporcionó token.' });
+        return res.status(401).send({
+            message: 'Acceso denegado: no se proporcionó token.'
+        });
     }
 
     try {
@@ -14,7 +16,9 @@ const authMiddleware = (req, res, next) => {
         next();
     } catch (error) {
         console.error(error);
-        return res.status(403).send({ message: 'Acceso denegado: token no válido o expirado.' });
+        return res.status(403).send({
+            message: 'Acceso denegado: token no válido o expirado.'
+        });
     }
 };
 
