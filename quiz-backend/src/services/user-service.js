@@ -85,7 +85,7 @@ const getAllUsers = async (email) => {
     }
     return {
         message: 'Successful',
-        user: usersInstance
+        users: usersInstance
     };
 };
 

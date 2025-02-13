@@ -27,7 +27,6 @@ const [lastName, lastNameAttrs] = defineField('lastName');
 const onSubmit = async() => {
   const result = await api.AuthService.register(email.value, password.value, firstName.value, lastName.value);
   if (result.success) {
-    console.log('Usuario autenticado:', result.data);
     router.push('/');
   } else {
     errorLog.value = result.error;

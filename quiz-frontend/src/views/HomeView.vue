@@ -17,7 +17,6 @@ const router = useRouter();
 const checkToken = async () => {
     const result = await api.AuthService.validate();
     if (result.success) {
-        console.log('Usuario autenticado:', result.data);
         setUser(result.data.user);
         isLoaded.value = true;
     } else {
@@ -30,7 +29,6 @@ onMounted(() => {
 });
 
 const setUser = (newUser) => {
-    console.log('Nuevo usuario:', newUser);
     Object.assign(user.value, newUser);
 };
 const handleTransfer = async({ email, amount }) => {

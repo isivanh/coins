@@ -5,7 +5,7 @@ const authMiddleware = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
         return res.status(401).send({
-            message: 'Acceso denegado: no se proporcionó token.'
+            message: 'Forbidden access: Token not provided.'
         });
     }
 
@@ -17,7 +17,7 @@ const authMiddleware = (req, res, next) => {
     } catch (error) {
         console.error(error);
         return res.status(403).send({
-            message: 'Acceso denegado: token no válido o expirado.'
+            message: 'Forbidden access: Token invalid or expired.'
         });
     }
 };

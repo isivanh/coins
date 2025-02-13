@@ -3,21 +3,21 @@ const { body, header, validationResult } = require('express-validator')
 const loginValidationRules = () => {
     return [
         body('email').isEmail()
-            .withMessage('Email value no valid'),
+            .withMessage('Email value not valid'),
         body('password').isLength({ min: 6 })
-            .withMessage('Password value no valid'),
+            .withMessage('Password value not valid'),
     ]
 }
 const signupValidationRules = () => {
     return [
         body('firstName').isString()
-            .withMessage('First name value no valid'),
+            .withMessage('First name value not valid'),
         body('lastName').isString()
-            .withMessage('Last name value no valid'),
+            .withMessage('Last name value not valid'),
         body('email').isEmail()
-            .withMessage('Email value no valid'),
+            .withMessage('Email value not valid'),
         body('password').isLength({ min: 6 })
-            .withMessage('Password value no valid'),
+            .withMessage('Password value not valid'),
     ]
 }
 const validateValidationRules = () => {
@@ -25,7 +25,7 @@ const validateValidationRules = () => {
         header('Authorization')
             .exists()
             .contains('Bearer')
-            .withMessage('Authorization no valid'),
+            .withMessage('Authorization not valid'),
     ]
 }
 const transferValidationRules = () => {
@@ -37,7 +37,7 @@ const transferValidationRules = () => {
         header('Authorization')
             .exists()
             .contains('Bearer')
-            .withMessage('Authorization no valid'),
+            .withMessage('Authorization not valid'),
     ]
 }
 const usersValidationRules = () => {
@@ -45,7 +45,7 @@ const usersValidationRules = () => {
         header('Authorization')
             .exists()
             .contains('Bearer')
-            .withMessage('Authorization no valid'),
+            .withMessage('Authorization not valid'),
     ]
 }
 const validator = (req, res, next) => {
